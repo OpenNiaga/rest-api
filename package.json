@@ -2,9 +2,13 @@
   "name": "openniaga-rest-api",
   "version": "1.0.0",
   "description": "Rest API for a Backend Service",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prestart": "npm run build",
   },
   "repository": {
     "type": "git",
