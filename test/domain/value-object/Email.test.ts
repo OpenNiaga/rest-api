@@ -1,4 +1,4 @@
-import { Email } from "@src/domain/value-object/Email.js";
+import { Email } from "../../../src/domain/value-object/Email";
 
 describe("Email", () => {
   describe("isValid", () => {

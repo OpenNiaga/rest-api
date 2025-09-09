@@ -1,0 +1,21 @@
+# Set default behavior for all text files to use LF
+* text=auto eol=lf
+
+# Explicitly enforce LF for important text file types
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+
+# TypeScript diffing support
+*.ts diff=typescript
+*.tsx diff=typescript
+
+# Disable diff for lock file (and prevent conflicts if desired)
+package-lock.json -diff
+package-lock.json merge=union

@@ -1,5 +1,5 @@
-import { Email } from "./domain/value-object/Email.js";
-import { greeting } from "./greeting.js";
+import { Email } from "./domain/value-object/Email";
+import { greeting } from "./greeting";
 
 console.log(greeting("Rizal"));
 const result = Email.create("rizal.fadlullah@gmail.com");

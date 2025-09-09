@@ -1,4 +1,4 @@
-import { Result } from "@src/domain/value-object/Result.js";
+import { Result } from "./Result";
 
 export class Email {
   private readonly value: string;

@@ -1,4 +1,4 @@
-import { Result } from "@src/domain/value-object/Result.js";
+import { Result } from "../../../src/domain/value-object/Result";
 
 describe("Result class", () => {
   describe("success factory", () => {
