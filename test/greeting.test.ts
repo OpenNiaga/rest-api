@@ -1,4 +1,4 @@
-import { greeting } from "../src/greeting.js";
+import { greeting } from "../src/greeting";
 
 describe("Test Suit 1", () => {
   test("Test Case 1", () => {
