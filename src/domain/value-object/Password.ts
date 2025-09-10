@@ -1,4 +1,5 @@
 import { compare, hash } from "bcrypt";
+import { Result } from "./Result";
 
 export class Password {
   private static readonly SALT_ROUNDS = 10;
@@ -10,11 +11,11 @@ export class Password {
     return new Password(hashed);
   }
 
-  static fromHashed(hash: string): Password {
+  static fromHashed(hash: string): Result<Password,string> {
     if (!this.isBcryptHash(hash)) {
-      throw new Error("Invalid bcrypt hash format.");
+			return Result.failure("Invalid hashed Password")
     }
-    return new Password(hash);
+    return Result.success(new Password(hash));
   }
 
   async compareWith(plain: string): Promise<boolean> {
