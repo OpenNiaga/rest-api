@@ -39,9 +39,10 @@ export class RegisterUser {
 
     const emailResult = Email.create(req.email);
     if (emailResult.isFailure) {
+      console.log("chech error email already in use");
       errors.push({
         field: "email",
-        message: emailResult.error || "Invalid email format.",
+        message: "Invalid email format.",
       });
     }
 
@@ -89,14 +90,6 @@ export class RegisterUser {
     const password = await Password.create(req.password);
     const user = User.create(email, username, password);
     const savedUser = await this.userRepo.save(user);
-    if (savedUser == null) {
-      return Result.failure([
-        {
-          field: "general",
-          message: "Error saving user.",
-        },
-      ]);
-    }
 
     return Result.success({
       id: savedUser.id!,
