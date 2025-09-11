@@ -39,7 +39,6 @@ export class RegisterUser {
 
     const emailResult = Email.create(req.email);
     if (emailResult.isFailure) {
-      console.log("chech error email already in use");
       errors.push({
         field: "email",
         message: "Invalid email format.",

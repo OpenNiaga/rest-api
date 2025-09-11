@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import { AuthController } from "../../../src/infrastructure/controller/UserController";
+import { RegisterUser } from "../../../src/application/usecase/UserRegister";
+import { Result } from "../../../src/domain/value-object/Result";
 
-// Mock dependencies
-const mockRegisterUser: RegisterUser = {
+const mockRegisterUser: jest.Mocked<RegisterUser> = {
   execute: jest.fn(),
-};
+} as any;
 
 const mockRequest = (body: any): Partial<Request> => ({
   body,
@@ -34,11 +36,13 @@ describe("AuthController - register", () => {
 
     const mockRes = mockResponse();
 
-    const fakeUser = { id: 1, username: "johndoe", email: "johndoe@example.com" };
+    const fakeUser = {
+      id: "user-123",
+      username: "johndoe",
+      email: "johndoe@example.com",
+    };
 
-    (mockRegisterUser.execute as jest.Mock).mockResolvedValue(
-      Result.ok(fakeUser)
-    );
+    mockRegisterUser.execute.mockResolvedValue(Result.success(fakeUser));
 
     await controller.register(mockReq as Request, mockRes);
 
@@ -68,11 +72,14 @@ describe("AuthController - register", () => {
     const mockRes = mockResponse();
 
     const validationErrors = [
-      { field: "passwordConfirm", message: "Passwords do not match" },
+      {
+        field: "passwordConfirm",
+        message: "Password confirmation does not match.",
+      },
     ];
 
-    (mockRegisterUser.execute as jest.Mock).mockResolvedValue(
-      Result.fail(validationErrors)
+    mockRegisterUser.execute.mockResolvedValue(
+      Result.failure(validationErrors),
     );
 
     await controller.register(mockReq as Request, mockRes);
@@ -95,9 +102,7 @@ describe("AuthController - register", () => {
 
     const mockRes = mockResponse();
 
-    (mockRegisterUser.execute as jest.Mock).mockRejectedValue(
-      new Error("Database is down")
-    );
+    mockRegisterUser.execute.mockRejectedValue(new Error("Database is down"));
 
     await controller.register(mockReq as Request, mockRes);
 
@@ -112,5 +117,116 @@ describe("AuthController - register", () => {
         },
       ],
     });
+  });
+
+  it("should handle empty username after trimming", async () => {
+    const mockReq = mockRequest({
+      username: "   ",
+      email: "test@example.com",
+      password: "password123",
+      passwordConfirm: "password123",
+    });
+
+    const mockRes = mockResponse();
+
+    const validationErrors = [
+      { field: "username", message: "Username is required." },
+    ];
+
+    mockRegisterUser.execute.mockResolvedValue(
+      Result.failure(validationErrors),
+    );
+
+    await controller.register(mockReq as Request, mockRes);
+
+    expect(mockRegisterUser.execute).toHaveBeenCalledWith({
+      username: "",
+      email: "test@example.com",
+      password: "password123",
+      passwordConfirm: "password123",
+    });
+
+    expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Validation failed",
+      errors: validationErrors,
+    });
+  });
+
+  it("should handle empty email after trimming", async () => {
+    const mockReq = mockRequest({
+      username: "johndoe",
+      email: "   ", 
+      password: "password123",
+      passwordConfirm: "password123",
+    });
+
+    const mockRes = mockResponse();
+
+    const validationErrors = [
+      { field: "email", message: "Invalid email format." },
+    ];
+
+    mockRegisterUser.execute.mockResolvedValue(
+      Result.failure(validationErrors),
+    );
+
+    await controller.register(mockReq as Request, mockRes);
+
+    expect(mockRegisterUser.execute).toHaveBeenCalledWith({
+      username: "johndoe",
+      email: "",
+      password: "password123",
+      passwordConfirm: "password123",
+    });
+
+    expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Validation failed",
+      errors: validationErrors,
+    });
+  });
+
+  it("should properly sanitize input data while preserving passwords", async () => {
+    const mockReq = mockRequest({
+      username: "  johndoe  ",
+      email: "  JOHNDOE@EXAMPLE.COM  ",
+      password: "  password123  ", 
+      passwordConfirm: "  password123  ",
+    });
+
+    const mockRes = mockResponse();
+
+    const fakeUser = {
+      id: "user-123",
+      username: "johndoe",
+      email: "johndoe@example.com",
+    };
+
+    mockRegisterUser.execute.mockResolvedValue(Result.success(fakeUser));
+
+    await controller.register(mockReq as Request, mockRes);
+
+    expect(mockRegisterUser.execute).toHaveBeenCalledWith({
+      username: "johndoe",
+      email: "JOHNDOE@EXAMPLE.COM",
+      password: "  password123  ",
+      passwordConfirm: "  password123  ",
+    });
+
+    expect(mockRes.status).toHaveBeenCalledWith(201);
+  });
+
+  it("should handle missing request body fields gracefully", async () => {
+    const mockReq = mockRequest({
+      username: "johndoe",
+    });
+
+    const mockRes = mockResponse();
+
+    await controller.register(mockReq as Request, mockRes)
+    expect(mockRes.status).toHaveBeenCalledWith(500);
   });
 });
