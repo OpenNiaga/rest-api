@@ -1,31 +1,36 @@
-import express, { Application } from 'express';
-import { json, urlencoded } from 'body-parser';
-import { createAuthRoutes } from './infrastructure/routes/AuthRoutes';
-import { InMemoryUserRepository } from './infrastructure/repositories/UserRepository';
+import express, { Application } from "express";
+import { json, urlencoded } from "body-parser";
+import { createAuthRoutes } from "./infrastructure/routes/AuthRoutes";
+import { InMemoryUserRepository } from "./infrastructure/repositories/UserRepository";
 
-// 1. Buat instance Express
+const config = {
+  port: process.env.PORT || 3000,
+  jwtSecret: process.env.JWT_SECRET || "defaultSecret",
+  db: {
+    host: process.env.DB_HOST || "localhost",
+    port: parseInt(process.env.DB_PORT || "5432"),
+    username: process.env.DB_USER || "user",
+    password: process.env.DB_PASS || "password",
+    database: process.env.DB_NAME || "mydb",
+  },
+};
+
 const app: Application = express();
 
-// 2. Middleware parsing
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
-// 3. Inisialisasi dependency
-const userRepository = new InMemoryUserRepository(); 
+const userRepository = new InMemoryUserRepository();
 
-// 4. Routing - harus sebelum middleware 404
-app.use('/api/auth', createAuthRoutes(userRepository));
+app.use("/api/auth", createAuthRoutes(userRepository));
 
-// 5. Middleware 404 (setelah routing)
 app.use((req, res) => {
   res.status(404).json({
-    error: 'Not Found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
+    error: "Not Found",
+    message: `Cannot ${req.method} ${req.originalUrl}`,
   });
 });
 
-// 6. Jalankan server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
+app.listen(config.port, () => {
+  console.log(`🚀 Server listening on http://localhost:${config.port}`);
 });
